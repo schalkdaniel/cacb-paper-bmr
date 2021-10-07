@@ -112,7 +112,7 @@ gg_bb = ggplot(df_bmr_smr) +
   scale_x_continuous(breaks = scales::pretty_breaks(4)) +
   facet_wrap(. ~ task, scales = "free")
 
-#ggsave(gg_bb, filename = here::here("real-world-bm/eq3/figures/fig-eq3.pdf"), width = dinA4width * 1.15, height = dinA4width * 0.5, units = "mm")
+#ggsave(gg_bb, filename = here::here("real-world-bm/eq3/figures/fig-eq3.pdf"), width = dinA4width * 1.15, height = dinA4width * 0.4, units = "mm")
 
 
 ## average improvements and total numbers:
