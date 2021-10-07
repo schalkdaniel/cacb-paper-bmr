@@ -5,8 +5,7 @@ if (FALSE) {
     "DiceKriging"))
   remotes::install_github("mlr-org/mlr3extralearners")
   remotes::install_github("mb706/mlrintermbo@fixed-initial-design")
-  #remotes::install_github("schalkdaniel/compboost", ref = "ba044d3a6f6814080eb097acca2e59fd8bad9805")
-  remotes::install_github("schalkdaniel/compboost", ref = "agbm_optim")
+  remotes::install_github("schalkdaniel/compboost", ref = "c68e8fb32aea862750991260d243cdca1d3ebd0e")
 }
 
 ## Files to load:
