@@ -10,7 +10,7 @@ Each folder contains a script `analyse.R` which can be used to reproduce the res
 
 ### Run the docker
 
-Running the docker provides an RStudio API in your browswer with all packages pre-installed and data to inspect the results. Therefore do:
+Running the docker provides an RStudio API in your browser with all packages pre-installed and data to inspect the results. Therefore do:
 
 1. Get the docker:
   - __Build the docker manually:__ Run `sudo docker build -t schalkdaniel/cacb-paper-bmr .` (You can use whatever tag you like, but for consistency we use `schalkdaniel/cacb-paper-bmr`)

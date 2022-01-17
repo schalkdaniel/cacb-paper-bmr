@@ -5,8 +5,7 @@
 #' @param sigma [numeric(1)] Standard deviation for the normally distributed random variable from which the parameter are drawn (default = 3).
 #' @param offset [numeric(1)] Shift on the y-axis of the linear predictor (default = 0).
 #' @return The sum of \code{x} and \code{y}.
-simSplines = function(x, bs_dim = 10L, sigma = 3, offset = 0, ...)
-{
+simSplines = function(x, bs_dim = 10L, sigma = 3, offset = 0, ...) {
   checkmate::assertNumeric(x = sigma, len = 1L)
   checkmate::assertNumeric(x = offset, len = 1L)
   if (bs_dim < 7) stop("Need bs_dim >= 7 !")
@@ -29,7 +28,7 @@ simSplines = function(x, bs_dim = 10L, sigma = 3, offset = 0, ...)
   # multiply with random coefficients to get random functions
   coefs = rnorm(bs_dim, sd = sigma)
 
-  return (list(y = X %*% coefs + offset, x = x, X = X, offset = offset, coefs = coefs, knots = kn))
+  return(list(y = X %*% coefs + offset, x = x, X = X, offset = offset, coefs = coefs, knots = kn))
 }
 
 
@@ -41,12 +40,11 @@ simSplines = function(x, bs_dim = 10L, sigma = 3, offset = 0, ...)
 #' @param sn_ratio [numeric(1)] Signal to noise ratio sd(noise) / sd(mod) (default = 0.1).
 #' @param featSimulator [function] Function for the generation of the linear predictor and feature with effect (default = simSplines).
 #' @return The sum of \code{x} and \code{y}.
-simData = function (n, p, pnoise, sn_ratio = 0, featSimulator = simSplines, seed = sample(100000, 1), ...)
-{
+simData = function (n, p, pnoise, sn_ratio = 0, featSimulator = simSplines, seed = sample(100000, 1), ...) {
   ll_simulator_out = list()
-  ll_feats = list()
-  ll_linpred = list()
-  ll_noise = list()
+  ll_feats         = list()
+  ll_linpred       = list()
+  ll_noise         = list()
 
   for (i in seq_len(p)) {
     # Simulate x value range somewhere between [0, 200]
@@ -100,7 +98,7 @@ simData = function (n, p, pnoise, sn_ratio = 0, featSimulator = simSplines, seed
   # Get the final dataset with response (y), effects (x1, ..., xp), and noise features (noise1, noisepnoise):
   df_out = cbind(data.frame(y = target), df_feats, df_noise)
 
-  return (list(data = df_out, sim_poly = ll_simulator_out))
+  return(list(data = df_out, sim_poly = ll_simulator_out))
 }
 
 
@@ -113,12 +111,11 @@ simData = function (n, p, pnoise, sn_ratio = 0, featSimulator = simSplines, seed
 #' @param nclasses [integer(1)] Number of classes per feature.
 #' @param ncnoise [integer(1)] Number of classes per feature with no effect.
 #' @return The sum of \code{x} and \code{y}.
-simCategoricalData = function (n, p, pnoise, sn_ratio = 0, nclasses, ncnoise, ...)
-{
+simCategoricalData = function (n, p, pnoise, sn_ratio = 0, nclasses, ncnoise, ...) {
   ll_simulator_out = list()
-  ll_feats = list()
-  ll_linpred = list()
-  ll_noise = list()
+  ll_feats         = list()
+  ll_linpred       = list()
+  ll_noise         = list()
 
   feat_prefix = letters[seq_len(p)]
   cls_names = apply(expand.grid(LETTERS, LETTERS), 1, paste0, collapse = "")
@@ -176,7 +173,7 @@ simCategoricalData = function (n, p, pnoise, sn_ratio = 0, nclasses, ncnoise, ..
   # Get the final dataset with response (y), effects (x1, ..., xp), and noise features (noise1, noisepnoise):
   df_out = cbind(data.frame(y = target), df_feats, df_noise)
 
-  return (list(data = df_out, cat_params = ll_simulator_out))
+  return(list(data = df_out, cat_params = ll_simulator_out))
 }
 
 
@@ -184,8 +181,7 @@ simCategoricalData = function (n, p, pnoise, sn_ratio = 0, nclasses, ncnoise, ..
 #'
 #' @param df [data.frame()] Data frame with configurations for the data simulation.
 #' @return Logical value indicating if all information are there.
-checkBMData = function (df, silent = TRUE)
-{
+checkBMData = function (df, silent = TRUE) {
   clnames_required = c("n", "p", "pnoise", "sn_ratio", "rep")
   if (! "data.frame" %in% class(df)) stop("df has to be a data.frame")
   clnames = colnames(df)
@@ -194,6 +190,5 @@ checkBMData = function (df, silent = TRUE)
     msg = paste0("Data frame has no columns: ", paste(clnames_required[! clnames_are_there], collapse = ", "))
     stop(msg)
   }
-  return (all(clnames_are_there))
+  return(all(clnames_are_there))
 }
-

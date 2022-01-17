@@ -3,6 +3,7 @@ FROM rocker/rstudio:4.1.1
 RUN git clone https://github.com/schalkdaniel/cacb-paper-bmr /home/rstudio/cacb-paper-bmr
 
 RUN Rscript -e "install.packages('remotes')"
+RUN Rscript -e "remotes::install_version('BH', version = '1.75')"
 RUN Rscript -e "remotes::install_version('here', version = '0.1')"
 RUN Rscript -e "remotes::install_version('dplyr', version = '1.0.7')"
 RUN Rscript -e "remotes::install_version('tidyr', version = '1.1.4')"
@@ -22,7 +23,7 @@ RUN Rscript -e "remotes::install_version('mlr3hyperband', version = '0.1.2')"
 RUN Rscript -e "remotes::install_version('batchtools', version = '0.9.15')"
 
 RUN Rscript -e "remotes::install_github('mlr-org/mlr3extralearners', ref = 'df6b209d20a0e9416458fa3e7784830e655cd3ca')"
-RUN Rscript -e "remotes::install_github('schalkdaniel/compboost', ref = 'c68e8fb32aea862750991260d243cdca1d3ebd0e')"
+RUN Rscript -e "remotes::install_github('schalkdaniel/compboost', ref = 'c68e8fb32aea862750991260d243cdca1d3ebd0e', upgrade = 'never')"
 
 RUN apt-get install python3
 RUN apt-get update

@@ -5,40 +5,28 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(gridExtra)
-
 library(batchtools)
 
-loadRegistry(here::here("real-world-bm/eq3/batchtools"))
+loadRegistry(here::here("real-world-bm/eq3/batchtools"), work.dir = here::here("real-world-bm/eq3"))
+
+SAVEGG = FALSE
 
 ## FIGURE SETTINGS:
 ## =============================================
 
-if (FALSE) {
-  font = "TeX Gyre Bonum"
-
-  sysfonts::font_add(font,
-      regular = "/usr/share/texmf-dist/fonts/opentype/public/tex-gyre/texgyrebonum-regular.otf",
-      bold = "/usr/share/texmf-dist/fonts/opentype/public/tex-gyre/texgyrebonum-bold.otf")
-
-  extrafont::font_import(paths = "~/repos/bm-CompAspCboost/paper-figures/gyre-bonum", prompt = FALSE)
-  extrafont::loadfonts()
-}
-
-
 theme_set(
-  #theme_minimal(base_family = font) +
   theme_minimal() +
   ggplot2::theme(
     strip.background = element_rect(fill = "white", color = "black"),
-    strip.text = element_text(color = "black", face = "bold", size = 6),
-    axis.text = element_text(size = 9),
+    strip.text = element_text(color = "black", face = "bold", size = 10),
+    axis.text = element_text(size = 10),
     axis.title = element_text(size = 11),
-    legend.title = element_text(size = 9),
-    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
     panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
   )
 )
-dinA4width = 162
+DINA4WIDTH = 162
 
 
 ## LOAD RESULTS:
@@ -49,6 +37,7 @@ load(here::here("real-world-bm/eq3/results-summarized/df_res.Rda"))
 ## PROCESS RESULTS:
 ## =============================================
 
+# Set learner ids for prettier labels:
 lids = c(
   "acc_acwb_b" = "ACWB (b)",
   "acc_hcwb_b" = "hCWB (b)",
@@ -87,7 +76,7 @@ tdims = sapply(levels(df_bmr_smr$task), function(tn) {
   if (tn == "7592") tnn = "Adult"
   if (tn == "168335") tnn = "MiniBooNE"
   if (tn == "189866") tnn = "Albert"
-  return(paste0(tnn, "   n: ", ts$nrow, ", p: ", fl))
+  return(paste0(tnn, "\nn: ", ts$nrow, ", p: ", fl))
 })
 
 df_bmr_smr$task = factor(tdims[df_bmr_smr$task])
@@ -112,14 +101,19 @@ gg_bb = ggplot(df_bmr_smr) +
   scale_x_continuous(breaks = scales::pretty_breaks(4)) +
   facet_wrap(. ~ task, scales = "free")
 
-#ggsave(gg_bb, filename = here::here("real-world-bm/eq3/figures/fig-eq3.pdf"), width = dinA4width * 1.15, height = dinA4width * 0.4, units = "mm")
+if (SAVEGG) {
+  ggsave(gg_bb,
+    filename = here::here("real-world-bm/eq3/figures/fig-eq3.pdf"),
+    width = DINA4WIDTH,
+    height = DINA4WIDTH * 0.44,
+    units = "mm")
+}
 
 
 ## average improvements and total numbers:
 ## -----------------------------------------
 
 df_bmr_vals = df_bmr %>%
-  #group_by(task, learner, fold) %>%
   group_by(task, learner) %>%
   summarize(seconds = mean(seconds), auc = mean(test_auc)) %>%
   group_by(task) %>%
@@ -192,7 +186,9 @@ df_bmr_full = rbind(
     pivot_wider(names_from = task)
 )
 
-a = knitr::kable(df_bmr_full, format = "latex", escape = FALSE)
+forder = c(8, 4, 7, 6, 3, 5)
+
+a = knitr::kable(df_bmr_full[, c(1, 2, forder)], format = "latex", escape = FALSE)
 lines = strsplit(a, "\n")[[1]]
 
 idx_head = grep("learner", lines)
@@ -213,7 +209,7 @@ ncols = length(names(df_bmr_full))
 lines_header = c("\\begin{tabular}{|ll|c|c|c|c|c|c|}",
   "\\hline",
   "& \\multirow{2}{*}{\\textbf{Algorithm}} & \\multicolumn{6}{c|}{\\textbf{Data set}} \\\\",
-  paste0(" & & ", paste(paste0("\\textbf{", names(df_bmr_full)[-(1:2)], "}"), collapse = " & "), "\\\\"),
+  paste0(" & & ", paste(paste0("\\textbf{", names(df_bmr_full)[forder], "}"), collapse = " & "), "\\\\"),
   "\\hline\\hline")
 
 lines[c(idx_auc[1], idx_time[1])] = paste0(

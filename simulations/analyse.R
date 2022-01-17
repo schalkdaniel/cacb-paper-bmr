@@ -8,46 +8,43 @@ library(dplyr)
 library(ggplot2)
 library(ggpubr)
 library(tidyr)
-library(viridis)
 library(gridExtra)
 library(ggsci)
 
-base_dir = here::here("simulations/")
-fig_dir  = function(fig_name) paste0(base_dir, "figures/", fig_name)
-res_dir  = function(res_name) paste0(base_dir, "/results-summarized/", res_name)
+# Set variable if ggplots should be saved:
+SAVEGG = FALSE
 
-source(paste0(base_dir, "R/bm-sim-data.R"))
-source(paste0(base_dir, "R/helper.R"))
+BASE_DIR = here::here("simulations/")
+FIG_DIR  = function(fig_name) paste0(BASE_DIR, "figures/", fig_name)
+RES_DIR  = function(res_name) paste0(BASE_DIR, "/results-summarized/", res_name)
 
+# Load helper functions:
+source(paste0(BASE_DIR, "R/bm-sim-data.R"))
+source(paste0(BASE_DIR, "R/helper.R"))
 
-if (FALSE) {
-  font = "TeX Gyre Bonum"
-
-  sysfonts::font_add(font,
-      regular = "/usr/share/texmf-dist/fonts/opentype/public/tex-gyre/texgyrebonum-regular.otf",
-      bold = "/usr/share/texmf-dist/fonts/opentype/public/tex-gyre/texgyrebonum-bold.otf")
-  extrafont::font_import(paths = here::here("/paper-figures/gyre-bonum"), prompt = FALSE)
-  extrafont::loadfonts()
-}
-
+# Set theme:
 theme_set(
   theme_minimal() +
   #theme_minimal(base_family = font) +
   ggplot2::theme(
     strip.background = element_rect(fill = "white", color = "black"),
     strip.text = element_text(color = "black", face = "bold", size = 10),
-    axis.text = element_text(size = 9),
+    #axis.text = element_text(size = 9),
+    axis.text = element_text(size = 10),
     axis.title = element_text(size = 11),
-    legend.title = element_text(size = 9),
-    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    #legend.title = element_text(size = 9),
+    #legend.text = element_text(size = 7),
     panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
   )
 )
-my_color = scale_color_uchicago()
-my_fill = scale_fill_uchicago()
+MY_COLOR = scale_color_uchicago()
+MY_FILL = scale_fill_uchicago()
 
-dinA4width = 162
-mycolors = ggsci::pal_uchicago()(6)[4:6]
+# Gained from \printinunitsof{cm}\prntlen{\textwidth} in the latex doc
+DINA4WIDTH = 162
+MYCOLORS = ggsci::pal_uchicago()(6)[4:6]
 
 #extract legend
 #https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
@@ -71,7 +68,8 @@ g_legend = function(a.gplot) {
 
 # Data:
 # - `df_plt` data.frame
-load(res_dir("fig-agbm-restart-iters.Rda"))
+load(RES_DIR("fig-agbm-restart-iters.Rda"))
+
 agbm_iters = which.min(df_plt[df_plt$method == "ACWB", "Risk"])
 iter = 3000L
 
@@ -79,6 +77,7 @@ df_plt$method[df_plt$method == "ACWB with restart"] = "hCWB"
 
 df_plt$method[df_plt$method == "hCWB"] = "HCWB"
 df_plt$method = factor(df_plt$method, levels = c("CWB", "ACWB", "HCWB"))
+
 # Plot
 gg = df_plt %>% filter(type == "oob", Iteration <= iter) %>%
   ggplot(aes(x = Iteration, y = Risk, color = method)) +
@@ -89,19 +88,20 @@ gg = df_plt %>% filter(type == "oob", Iteration <= iter) %>%
   xlab("Iterations") +
   ylab("Validation loss") +
   labs(color = "") +
-  annotate("text", x = agbm_iters, y = max(df_plt$Risk),
-    label = "Optimal stopping ACWB", color = "dark red",
-    hjust = -0.1, size = 2) +
-  scale_fill_manual(values = mycolors) +
-  scale_color_manual(values = mycolors)
+  annotate("text", x = agbm_iters * 1.1, y = max(df_plt$Risk),
+    label = "Optimal stopping\nACWB", color = "dark red",
+    hjust = 0, vjust = 1,  size = 2.7) +
+  scale_fill_manual(values = MYCOLORS) +
+  scale_color_manual(values = MYCOLORS)
 
-#ggsave(
-  #plot = gg,
-  #filename = fig_dir("fig-optim-emp-risk.pdf"),
-  #width = dinA4width*0.5,
-  #height = dinA4width*0.25,
-  #units = "mm",
-  #family = font)
+if (SAVEGG) {
+  ggsave(
+    plot = gg,
+    filename = FIG_DIR("fig-optim-emp-risk.pdf"),
+    width = DINA4WIDTH*0.5,
+    height = DINA4WIDTH*0.25,
+    units = "mm")
+}
 
 
 
@@ -110,12 +110,14 @@ gg = df_plt %>% filter(type == "oob", Iteration <= iter) %>%
 
 # Data:
 # - `df_plt_mem` data.frame
-load(res_dir("fig-binning-memory.Rda"))
+load(RES_DIR("fig-binning-memory.Rda"))
 # - `df_plt_run` data.frame
-load(res_dir("fig-binning-runtime.Rda"))
+load(RES_DIR("fig-binning-runtime.Rda"))
 
+# Filter number of features (adding all #features
+# makes the plot messy):
 df_plt_mem = df_plt_mem %>%
-  filter(ptotal %in% c(7,10,15,30,60,100,150,300))
+  filter(ptotal %in% c(7, 10, 15, 30, 60, 100, 150, 300))
 
 ## MEMORY
 gg1 = ggplot(
@@ -142,9 +144,9 @@ gg1 = ggplot(
     color = "dark red",
     vjust = -0.5,
     hjust = 0.9,
-    size = 2) +
+    size = 3) +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5), legend.position = "bottom") +
-  my_color + my_fill +
+  MY_COLOR + MY_FILL +
   guides(color = guide_legend(nrow = 2))
 
 ## RUNTIME:
@@ -192,9 +194,10 @@ gg2 = ggplot() +
     color = "dark red",
     vjust = -0.5,
     hjust = 0.7,
-    size = 2) +
-  my_color + my_fill
+    size = 3) +
+  MY_COLOR + MY_FILL
 
+# Extract legend of first ggplot:
 mylegend = g_legend(gg1)
 
 p3 = grid.arrange(
@@ -210,12 +213,14 @@ p3 = grid.arrange(
 
 dev.off()
 
-#ggsave(
-  #plot = p3,
-  #filename = fig_dir("fig-binning-runtime-memory.pdf"),
-  #width = dinA4width * 0.9,
-  #height = dinA4width * 0.4,
-  #units = "mm")
+if (SAVEGG) {
+  ggsave(
+    plot = p3,
+    filename = FIG_DIR("fig-binning-runtime-memory.pdf"),
+    width = DINA4WIDTH * 0.9,
+    height = DINA4WIDTH * 0.4,
+    units = "mm")
+}
 
 
 
@@ -223,6 +228,7 @@ dev.off()
 ## H2: MISE vizualization + MISE binning
 ## ===========================================
 
+# Variables for the example simulation/visualization:
 seed = 31415
 
 n = 100000
@@ -230,14 +236,22 @@ p = 4
 pnoise = 2
 sn_ratio = 0.1
 
+
+# Simulate data for the example visualization:
+
 set.seed(seed)
 dat = simData(n, p, pnoise)
 dat_noise = dat$data
+
 set.seed(seed)
 dat_noise$y = rnorm(n = n, mean = dat_noise$y, sd = sd(dat_noise$y) / sn_ratio)
 
-# remotes::install_github("schalkdaniel/compboost", ref = "agbm_iters")
+# remotes::install_github("schalkdaniel/compboost", ref = "c68e8fb32aea862750991260d243cdca1d3ebd0e")
+# Be careful with BH version > 1.45, it does not work with the version of compboost at the
+# statet commit.
 library(compboost)
+
+# Train two models to compare the estimated feature effects:
 
 set.seed(seed)
 cboost = boostSplines(data = dat_noise, target = "y", iterations = 10000L, learning_rate = 0.01,
@@ -251,6 +265,7 @@ cboost_bin = boostSplines(data = dat_noise, target = "y", iterations = 10000L, l
 
 # MISE is 49.08 for cwb
 #         49.10 for cwb with binning
+# May differ slightly, depending on RNG and seeding options.
 if (FALSE) {
   mise = numeric(4L)
   mise_bin = numeric(4L)
@@ -274,6 +289,7 @@ if (FALSE) {
   mean(mise_bin)
 }
 
+# Use 1000 points for plotting:
 ndata = 1000L
 dat_idx = as.integer(seq(1, n, len = ndata))
 
@@ -282,8 +298,9 @@ bls = paste0(feat, "_spline")
 coef_names = c("coef_binning", "coef_nobinning")
 coefs = list(coef_binning = cboost_bin$getEstimatedCoef(), coef_nobinning = cboost$getEstimatedCoef())
 
+# Generate feature effects depending on the parameter estimates:
 out = list()
-for(bl in bls) {
+for (bl in bls) {
   bl_nbr = as.numeric(gsub("\\D", "", bl))
 
   x = dat$data[[paste0("x", bl_nbr)]][dat_idx]
@@ -309,7 +326,8 @@ for(bl in bls) {
   out[[bl]] = df_temp
 }
 
-ll_fe = lapply(out, function (df) {
+# Generate data frame with partial effects data:
+ll_fe = lapply(out, function(df) {
   df %>%
     pivot_longer(cols = all_of(c(coef_names, "truth")), names_to = "method", values_to = "effect") %>%
     group_by(method) %>%
@@ -318,6 +336,7 @@ ll_fe = lapply(out, function (df) {
 })
 df_fe = do.call(rbind, ll_fe)
 
+# Add categories for different lines:
 feat_id = as.integer(gsub("\\D", "", df_fe$bl))
 feat = paste0("Feature ", feat_id)
 df_fe$feat = factor(feat, levels = paste0("Feature ", sort(unique(feat_id))))
@@ -348,14 +367,14 @@ gg1 = ggplot() +
   ylab("Partial effect") +
   labs(color = "", linetype = "") +
   scale_linetype(guide = "none") +
-  my_color + my_fill +
+  MY_COLOR + MY_FILL +
   facet_wrap(. ~ feat, scales = "free") + #, scales = "free")
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
 
 
 # Data:
 # - `df_imse` data.frame
-load(res_dir("fig-binning-imse.Rda"))
+load(RES_DIR("fig-binning-imse.Rda"))
 
 df_imse$method_n = as.factor(df_imse$method_n)
 levels(df_imse$method_n) = c("Binning", "Binning 4", "No binning")
@@ -367,16 +386,18 @@ gg2 = ggplot(
   xlab("Number of rows (log scale)") +
   ylab("MISE") +
   labs(color = "", fill = "") +
-  my_color + my_fill +
+  MY_COLOR + MY_FILL +
   facet_grid(paste0("SNR = ", sn_ratio) ~ ., scales = "free_y") +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 20, hjust = 1))
 
-#ggsave(
-  #plot = grid.arrange(gg1, gg2, ncol = 2),
-  #filename = fig_dir("fig-binning-imse.pdf"),
-  #width = dinA4width,
-  #height = dinA4width * 0.55,
-  #units = "mm")
+if (SAVEGG) {
+  ggsave(
+    plot = grid.arrange(gg1, gg2, ncol = 2),
+    filename = FIG_DIR("fig-binning-imse.pdf"),
+    width = DINA4WIDTH,
+    height = DINA4WIDTH * 0.58,
+    units = "mm")
+}
 
 
 
@@ -384,17 +405,23 @@ gg2 = ggplot(
 ## H3: ACWB/hCWB MISE + iters
 ## ==============================================
 
-load(res_dir("res-aggregated.Rda"))
+## Data:
+load(RES_DIR("res-aggregated.Rda"))
 
+# Use 10 categories for plotting:
 ncat = 10L
 breaks = c(1.3^(-seq(8, 49, length.out = ncat)), 0)
 breaks[1] = 0.1
-df_agbm$mom_cat = cut(df_agbm$momentum, breaks = breaks)
+
+df_agbm = df_agbm %>%
+  mutate(mom_cat = cut(momentum, breaks = breaks))
+
 levels(df_agbm$mom_cat) = c(levels(df_agbm$mom_cat), "COD")
 df_agbm$mom_cat[df_agbm$method == "COD"] = "COD"
 
 pretty_levels = paste0("1.3e-", seq(8, 49, length.out = ncat))
 
+# Create new data frame for plotting:
 df_plt = df_agbm %>%
   filter(momentum > 0.0003) %>%
   group_by(seed, rep, momentum) %>%
@@ -402,12 +429,8 @@ df_plt = df_agbm %>%
     n = n(),
     mise = mise[method == "COD"] - mise,
     mse_oob = mse_oob[method == "COD"] - mse_oob,
-    #time = (time_fit[method == "COD"] - time_fit) / time_fit[method == "COD"],
     time = time_fit,
-    #iters = (iters[method == "COD"] - time_fit) / iters[method == "COD"],
-    #iters = iters[method == "COD"] / (iters[method == "COD"] - iters),
     iters = iters[method == "COD"] / iters,
-    #iters = iters,
     iterso = iters,
     mom_cat = mom_cat,
     method = method,
@@ -429,14 +452,6 @@ df_tmp = df_plt %>%
     med_iters = median(iters), lower_iters = quantile(iters, qlower), upper_iters = quantile(iters, qupper)
   )
 
-equalBreaks = function(n = 4, s = 0.05, ...) {
-  function(x) {
-    # rescaling
-    d = s * diff(range(x)) / (1 + 2 * s)
-    round(seq(round(min(x) + d, 2), round(max(x) - d, 2), length = n), 2)
-  }
-}
-
 gg1 = df_tmp %>% na.omit() %>% mutate(method = ifelse(method == "ACWB", "ACWB", "HCWB")) %>%
   ggplot(aes(color = mom_cat)) +
     geom_vline(xintercept = 1, linetype = "dashed", color = "dark red", alpha = 0.3, size = 0.2) +
@@ -444,25 +459,25 @@ gg1 = df_tmp %>% na.omit() %>% mutate(method = ifelse(method == "ACWB", "ACWB", 
     geom_point(aes(x = med_iters, y = med_mise), size = 0.6) +
     geom_errorbar(aes(x = med_iters, ymin = lower_mise, ymax = upper_mise), alpha = 0.8, size = 0.4) +
     geom_errorbarh(aes(xmin = lower_iters, xmax = upper_iters, y = med_mise), alpha = 0.8, size = 0.4) +
-    my_color +
-    my_fill +
+    MY_COLOR +
+    MY_FILL +
     xlab("Speedup") +
     ylab("MISE difference") +
     labs(color = "Momentum", fill = "Momentum") +
-    #scale_y_continuous(breaks = equalBreaks(3)) +
     scale_x_continuous(trans = "log2") +
     theme(strip.text = element_text(color = "black", face = "bold", size = 8),
-      axis.text.x = element_text(size = 6, angle = 45, hjust = 1),
-      axis.text.y = element_text(size = 6)) +
+      axis.text.x = element_text(size = 10, angle = 50, hjust = 1),
+      axis.text.y = element_text(size = 10)) +
     facet_grid(paste0("SNR = ", snr) ~ method, scales = "free")
-    #facet_wrap(vars(paste0(method, ": SNR = ", snr)), scales = "free", strip.position = "top", ncol = 3L)
 
-ggsave(
-  plot = gg1,
-  filename = fig_dir("fig-acwb-iters-mise.pdf"),
-  width = dinA4width*0.7,
-  height = dinA4width*0.47,
-  units = "mm")
+if (SAVEGG) {
+  ggsave(
+    plot = gg1,
+    filename = FIG_DIR("fig-acwb-iters-mise.pdf"),
+    width = DINA4WIDTH*0.7,
+    height = DINA4WIDTH*0.43,
+    units = "mm")
+}
 
 
 
@@ -470,10 +485,11 @@ ggsave(
 ## H4
 ## =====================================
 
-## Empirical computational complexity:
+## Appendix: Empirical computational complexity
 ## ------------------------------------------------
 
-load(res_dir("fig-comp-complexity.Rda"))
+# Data:
+load(RES_DIR("fig-comp-complexity.Rda"))
 
 ll_res = list()
 ll_est = list()
@@ -483,10 +499,7 @@ ll_est_bin = list()
 for (nrow0 in unique(df_binning_runtime$nrows)) {
   df_cwb = df_binning_runtime %>%
     filter(method == "nobinning", nrows == nrow0) %>%
-    mutate(time = time_fit + time_init, ptotal = ncols + ncolsnoise) #%>%
-    #group_by(ptotal) %>%
-    #filter(time < quantile(time, 0.75)) #%>%
-    #ggplot(aes(x = as.character(ptotal), y = time)) + geom_boxplot()
+    mutate(time = time_fit + time_init, ptotal = ncols + ncolsnoise)
 
   df_bin = df_binning_runtime %>%
     filter(method == "binning", nrows == nrow0) %>%
@@ -569,7 +582,7 @@ gg_cwb = ggplot() +
   ylab("Time in seconds") +
   theme(legend.position = "bottom") +
   guides(color = guide_legend(nrow = 1)) +
-  my_color + my_fill
+  MY_COLOR + MY_FILL
 
 df_plt_bin = do.call(rbind, ll_res_bin)
 df_plt_bin0 = df_plt_bin  %>%
@@ -591,7 +604,7 @@ gg_bin = ggplot() +
   labs(color = "n") +
   xlab("d (log scale)") +
   ylab("Time in seconds") +
-  my_color + my_fill
+  MY_COLOR + MY_FILL
 
 mylegend = g_legend(gg_cwb)
 
@@ -611,12 +624,14 @@ p3 = grid.arrange(
   heights = c(9, 2))
 dev.off()
 
-#ggsave(
-  #plot = p3,
-  #filename = fig_dir("fig-comp-complexity.pdf"),
-  #width = dinA4width * 0.9,
-  #height = dinA4width * 0.4,
-  #units = "mm")
+if (SAVEGG) {
+  ggsave(
+    plot = p3,
+    filename = FIG_DIR("fig-comp-complexity.pdf"),
+    width = DINA4WIDTH * 0.9,
+    height = DINA4WIDTH * 0.4,
+    units = "mm")
+}
 
 
 
@@ -625,7 +640,8 @@ dev.off()
 ## Computational complexity ACWB:
 ## --------------------------------------------
 
-load(res_dir("df_comp_acwb.Rda"))
+# Data:
+load(RES_DIR("df_comp_acwb.Rda"))
 
 ## Theoretical formula: K * (d^2 * n+d^3) + 2 * M * K(d^2 + d * n)
 compACWB = function(pars, n, p, iters, npars) {
@@ -662,8 +678,6 @@ df_tmp2 = df_comp_acwb %>% cbind(time_est = time_est)
 ### R^2
 1 - sum((df_tmp2$time_est - df_tmp2$time)^2) / sum((df_tmp2$time - mean(df_tmp2$time))^2)
 
-#mycolors = c(ggsci::pal_aaas()(3), ggsci::pal_uchicago()(9))
-
 set.seed(31415)
 sel_idx = sample(seq_len(60L), 10)
 
@@ -680,11 +694,15 @@ gg_comp = ggplot(df_plt) +
   ylab("Runtime\n(in minutes)") +
   labs(color = "K") +
   theme(legend.key.size = unit(0.6, 'lines')) +
-  #scale_x_continuous(trans = "log10") +
   ggsci::scale_color_uchicago()
-  #scale_color_manual(values = mycolors)
 
-ggsave(gg_comp, filename = "fig-h4.pdf", width = dinA4width * 0.7, height = dinA4width * 0.25, units = "mm")
+if (SAVEGG) {
+  ggsave(gg_comp,
+    filename = FIG_DIR("fig-h4.pdf"),
+    width = DINA4WIDTH * 0.7,
+    height = DINA4WIDTH * 0.25,
+    units = "mm")
+}
 
 
 
@@ -700,7 +718,7 @@ if (FALSE) {
 ## =====================================
 
 ## MEMORY:
-load(res_dir("fig-acwb-mem.Rda"))
+load(RES_DIR("fig-acwb-mem.Rda"))
 
 gg = ggplot(
     data = df_plt_mem %>% filter(ptotal %in% c(10, 30, 75, 100, 150, 300)),
@@ -715,8 +733,8 @@ gg = ggplot(
   scale_x_continuous(
     breaks = sort(unique(df_plt_mem$nrows)),
     trans = "log10") +
-  my_color +
-  my_fill +
+  MY_COLOR +
+  MY_FILL +
   xlab("Number of Rows\n(log10 Scale)") +
   ylab(expression(atop("Memory improvement\n", paste(Mem["CWB"], "/", Mem["ACWB"], sep = "")))) +
   labs(color = "Number of\nFeatures") +
@@ -729,17 +747,19 @@ gg = ggplot(
     hjust = 1,
     size = 1.5)
 
-#ggsave(
-  #plot = gg,
-  #filename = fig_dir("fig-acwb-memory.pdf"),
-  #width = dinA4width ,
-  #height = dinA4width * 0.7,
-  #units = "mm")
+if (FALSE) {
+  ggsave(
+    plot = gg,
+    filename = FIG_DIR("fig-acwb-memory.pdf"),
+    width = DINA4WIDTH ,
+    height = DINA4WIDTH * 0.7,
+    units = "mm")
+}
 
 
 ## RUNTIME:
 
-load(res_dir("fig-acwb-run.Rda"))
+load(RES_DIR("fig-acwb-run.Rda"))
 
 df_plt_run = df_plt_run %>%
   filter(rel_time < 0.7) %>%
@@ -757,7 +777,7 @@ gg = ggplot() +
   geom_point(
     data = df_plt_run,
     aes(x = nrows, y = med, color = as.factor(ptotal)),
-    size = 10,
+    size = 4,
     alpha = 0.7,
     position = position_dodge(width = dodge_width)) +
   geom_errorbar(
@@ -766,12 +786,7 @@ gg = ggplot() +
     na.rm = TRUE,
     position = position_dodge(width = dodge_width),
     size = 1.3) +
-  #geom_violin(
-    #data = df_plt_run ,
-    #aes(x = as.factor(nrows), y = rel_time, fill = as.factor(ptotal), color = as.factor(ptotal)),
-    #alpha = 0.2,
-    #show.legend = FALSE) +
-  my_color + my_fill +
+  MY_COLOR + MY_FILL +
   xlab("Number of Rows\n(log10 Scale)") +
   ylab(expression(atop("Speedup\n", paste(Time["No Binning"], "/", Time["Binning"], sep = "")))) +
   labs(color = "Number of\nFeatures", fill = "Number of\nFeatures") +
@@ -788,12 +803,14 @@ gg = ggplot() +
     size = 1.5) +
   ylim(0.25, 1)
 
-ggsave(
-  plot = gg,
-  filename = fig_dir("fig-acwb-runtime.pdf"),
-  width = dinA4width,
-  height = dinA4width * 0.7,
-  units = "mm")
+if (FALSE) {
+  ggsave(
+    plot = gg,
+    filename = FIG_DIR("fig-acwb-runtime.pdf"),
+    width = DINA4WIDTH,
+    height = DINA4WIDTH * 0.7,
+    units = "mm")
+}
 
 
 ## Categorical features:
@@ -801,9 +818,9 @@ ggsave(
 
 # Data:
 # - `df_plt_mem` data.frame
-load(res_dir("fig-cat-memory.Rda"))
+load(RES_DIR("fig-cat-memory.Rda"))
 # - `df_plt_run` data.frame
-load(res_dir("fig-cat-runtime.Rda"))
+load(RES_DIR("fig-cat-runtime.Rda"))
 
 
 ## MEMORY
@@ -834,17 +851,18 @@ gg = ggplot() +
   ylab("Used memory in MB") +
   labs(color = "Number of\nreatures") +
   coord_cartesian(clip = 'off') +
-  my_color + my_fill +
+  MY_COLOR + MY_FILL +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   facet_grid(nclasses ~ method)#, scales= "free_y")
-gg
 
-ggsave(
-  plot = gg,
-  filename = fig_dir("fig-appendix-cat-memory.pdf"),
-  width = 0.75*dinA4width ,
-  height = 0.75*dinA4width,
-  units = "mm")
+if (SAVEGG) {
+  ggsave(
+    plot = gg,
+    filename = FIG_DIR("fig-appendix-cat-memory.pdf"),
+    width = 0.75*DINA4WIDTH ,
+    height = 0.75*DINA4WIDTH,
+    units = "mm")
+}
 
 ## RUNTIME
 
@@ -878,7 +896,7 @@ gg = ggplot() +
     na.rm = TRUE,
     position = position_dodge(width = dodge_width),
     size = 0.4) +
-  my_color + my_fill +
+  MY_COLOR + MY_FILL +
   xlab("Number of rows\n(log10 Scale)") +
   ylab("Runtime in minutes") +
   labs(color = "Number of\nfeatures", fill = "Number of\nfeatures") +
@@ -888,20 +906,21 @@ gg = ggplot() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   facet_grid(nclasses ~ method)#, scales= "free_y")
 
-
-ggsave(
-  plot = gg,
-  filename = fig_dir("fig-appendix-cat-runtime.pdf"),
-  width = dinA4width * 0.75,
-  height = dinA4width * 0.75,
-  units = "mm")
+if (SAVEGG) {
+  ggsave(
+    plot = gg,
+    filename = FIG_DIR("fig-appendix-cat-runtime.pdf"),
+    width = DINA4WIDTH * 0.75,
+    height = DINA4WIDTH * 0.75,
+    units = "mm")
+}
 
 
 # Data:
 # - `ll_noise` list with
 #   $ .. `density` data.frame
 #   $ .. `cat_sel` data.frame
-load(res_dir("fig-cat-noise.Rda"))
+load(RES_DIR("fig-cat-noise.Rda"))
 
 gg = ggplot(
     mapping = aes(
@@ -915,30 +934,29 @@ gg = ggplot(
     alpha = 0.2,
     size = 0.1) +
   geom_point(data = ll_noise$cat_sel, size = 0.2) +
-  my_fill +
-  my_color +
   xlab("FNR") +
   ylab("TNR") +
   labs(fill = "", color = "", shape = "") +
-  my_color + my_fill +
+  MY_COLOR + MY_FILL +
   xlim(min(ll_noise$density$rel_nwrongnotselected), max(ll_noise$denstiy$rel_nwrongnotselected)) +
   ylim(min(ll_noise$density$rel_notselected), max(ll_noise$density$rel_notselected)) +
   scale_x_continuous(breaks = seq(0, 1, 0.2)) +
   scale_y_continuous(breaks = seq(0, 1, 0.2)) +
   facet_grid(sn_ratiof ~ .)#, scales = "free_y")
 
-
-#ggsave(
-  #plot = gg,
-  #filename = fig_dir("fig-appendix-cat-noise.pdf"),
-  #width = dinA4width  * 0.7,
-  #height = dinA4width  * 0.5,
-  #units = "mm")
+if (SAVEGG) {
+  ggsave(
+    plot = gg,
+    filename = FIG_DIR("fig-appendix-cat-noise.pdf"),
+    width = DINA4WIDTH  * 0.7,
+    height = DINA4WIDTH  * 0.5,
+    units = "mm")
+}
 
 
 # Data:
 # - `df_cat_bp` data.frame
-load(res_dir("fig-cat-mse.Rda"))
+load(RES_DIR("fig-cat-mse.Rda"))
 
 font_scale = 6
 
@@ -947,16 +965,18 @@ gg = ggplot(df_cat_bp, aes(x = mse, y = value, fill = method, color = method)) +
   xlab("") +
   ylab("MSE") +
   labs(fill = "", color = "", shape = "") +
-  my_color + my_fill +
+  MY_COLOR + MY_FILL +
   ylim(0, 40) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   facet_grid(sn_ratiof ~ .) #, scales = "free_y")
 
-#ggsave(
-  #plot = gg,
-  #filename = fig_dir("fig-appendix-cat-mse.pdf"),
-  #width = dinA4width *  0.7,
-  #height = dinA4width *  0.6,
-  #units = "mm")
+if (SAVEGG) {
+  ggsave(
+    plot = gg,
+    filename = FIG_DIR("fig-appendix-cat-mse.pdf"),
+    width = DINA4WIDTH *  0.7,
+    height = DINA4WIDTH *  0.6,
+    units = "mm")
+}
 
 }

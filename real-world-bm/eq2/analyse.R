@@ -11,94 +11,43 @@ library(gridExtra)
 ## FIGURE SETTINGS:
 ## =============================================
 
-# Load TeX Gyre Bonum to replicate the used font:
-if (FALSE) {
-  font = "TeX Gyre Bonum"
+# Variable if ggplots should be saved:
+SAVEGG = FALSE
 
-  sysfonts::font_add(font,
-      regular = "/usr/share/texmf-dist/fonts/opentype/public/tex-gyre/texgyrebonum-regular.otf",
-      bold = "/usr/share/texmf-dist/fonts/opentype/public/tex-gyre/texgyrebonum-bold.otf")
-  #showtext::showtext_auto()
-  extrafont::font_import(paths = "~/repos/bm-CompAspCboost/paper-figures/gyre-bonum", prompt = FALSE)
-  extrafont::loadfonts()
-}
 theme_set(
   theme_minimal() +
-  #theme_minimal(base_family = font) +
   ggplot2::theme(
-    #strip.background = element_rect(fill = rgb(47, 79, 79, maxColorValue = 255), color = "white"),
     strip.background = element_rect(fill = "white", color = "black"),
-    strip.text = element_text(color = "black", face = "bold", size = 6),
-    axis.text = element_text(size = 9),
+    strip.text = element_text(color = "black", face = "bold", size = 10),
+    axis.text = element_text(size = 10),
     axis.title = element_text(size = 11),
-    legend.title = element_text(size = 9),
-    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
     panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
   )
 )
-dinA4width = 162
-mycolors = ggsci::pal_uchicago()(6)[4:6]
+DINA4WIDTH = 162
+MYCOLORS = ggsci::pal_uchicago()(6)[4:6]
+
+# important dirs:
+BASE_DIR = here::here("real-world-bm/eq2/")
+BT_DIR   = paste0(BASE_DIR, "batchtools/")
+FIG_DIR  = function(fig_name) paste0(BASE_DIR, "/figures/", fig_name)
 
 
 ## HELPER:
 ## =============================================
 
-getStopInfo = function(clog, patience = 10L, eps_for_break = 0.00001,
-  vname = "val_auc", tname = "test_auc", minimize = TRUE) {
-
-  dsign = 1
-  if (minimize) dsign = -1
-
-  rval     = 1 - clog[[vname]]
-  rvaldiff = diff(rval) / rval[-length(rval)] * dsign
-  p0 = 0
-  for (i in seq_along(rvaldiff)) {
-    if (rvaldiff[i] < eps_for_break)
-      p0 = p0 + 1
-    else
-      p0 = 0
-
-    if (p0 == patience) break
-  }
-  if (i < (nrow(clog) - 1))
-    istop = i - (patience + 1)
-  else
-    istop = nrow(clog)
-
-  return(data.frame(stop = istop, val_auc = clog[[vname]][istop], test_auc = clog[[tname]][istop],
-    seconds = clog$seconds[istop], learner = clog$learner[1], task = clog$task[1], fold = clog$fold[1],
-    val_acu_max = max(clog[[vname]]), test_auc_max = max(clog[[tname]]), transition = clog$transition[1]))
-}
-
-taskIDtoName = function(tid, ts = NULL) {
-  sapply(tid, function(tn) {
-
-    if (tn == "spam") tnn = "Spam"
-    if (tn == "168908") tnn = "Christine"
-    if (tn == "9977") tnn = "Namao"
-    if (tn == "7592") tnn = "Adult"
-    if (tn == "168335") tnn = "MiniBooNE"
-    if (tn == "189866") tnn = "Albert"
-
-    if (! is.null(ts)) {
-      ts = TASKS[[tn]]
-      return(paste0(tnn, "   n: ", ts$nrow, ", p: ", length(ts$feature_names)))
-    } else {
-      return(tnn)
-    }
-  })
-}
+source(paste0(BASE_DIR, "R/helper.R"))
 
 ## GET RESULTS:
 ## =============================================
 
-base_dir = here::here("real-world-bm/eq1-2/")
-bm_dir   = paste0(base_dir, "batchtools/")
-fig_dir  = function(fig_name) paste0(base_dir, "/figures/", fig_name)
-
-loadRegistry(file.dir = bm_dir, work.dir = base_dir)
+# Load result registry:
+loadRegistry(file.dir = BT_DIR, work.dir = BASE_DIR)
 getStatus()
 
+# Get results as list:
 jt  = getJobTable(findDone())
 res = reduceResultsList(jt)
 
@@ -145,7 +94,6 @@ lids = c(
 df_res = df_res %>%
   filter(learner != "acc_hcwb2") %>%
   mutate(learner = factor(learner))# %>%
-  #filter(! learner %in% c("CWB (b)", "CWB (nb)"))
 
 levels(df_res$learner) = lids[levels(df_res$learner)]
 
@@ -185,6 +133,7 @@ df_smry$binning = factor(df_smry$binning, levels = c("No binning", "Binning"))
 ## Figure 5:
 ## ---------------------------------------------
 
+# Aggregate results:
 df_aggr = df_res %>%
   group_by(task, learner, iteration) %>%
   summarize(test_auc = mean(test_auc), seconds = mean(seconds))
@@ -208,16 +157,22 @@ df_smry$taskn = factor(df_smry$taskn, levels = levels(df_smry$taskn)[c(6, 3, 5, 
 
 gg_tr = ggplot() +
   geom_line(data = df_aggr2, mapping = aes(x = seconds, y = test_auc, color = learner, linetype = binning), size = 0.5, alpha = 0.8) +
-  scale_fill_manual(values = mycolors) +
-  scale_color_manual(values = mycolors) +
+  scale_fill_manual(values = MYCOLORS) +
+  scale_color_manual(values = MYCOLORS) +
   xlab("Training time (seconds, square root scale)") +
   ylab("Test AUC") +
-  scale_x_continuous(trans = "sqrt") +#, guide = guide_axis(n.dodge = 2)) +
+  scale_x_continuous(trans = "sqrt", breaks = scales::pretty_breaks(4L)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(color = "Learner", linetype = "", shape = "") +
   facet_wrap(. ~ taskn, nrow = 2, scales = "free")
 
-#ggsave(gg_tr, filename = fig_dir("fig-eq2-1.pdf"), width = dinA4width * 1.15, height = dinA4width * 0.5, units = "mm")
+if (SAVEGG) {
+  ggsave(gg_tr,
+    filename = FIG_DIR("fig-eq2-1.pdf"),
+    width = DINA4WIDTH,
+    height = DINA4WIDTH * 0.5,
+    units = "mm")
+}
 
 
 ## Figure 6:
@@ -253,29 +208,39 @@ df_stop_smr$task = factor(df_stop_smr$task, levels = levels(df_stop_smr$task)[c(
 gg_bb = ggplot(df_stop_smr) +
   geom_rect(data = df_stop_smr %>% filter(learner == "CWB", binning == "No binning"),
     aes(xmin = -Inf, xmax = Inf, ymin = auc25, ymax = auc75),
-    alpha = 0.1, size = 0, show.legend = FALSE, fill = mycolors[1]) +
+    alpha = 0.1, size = 0, show.legend = FALSE, fill = MYCOLORS[1]) +
   geom_rect(data = df_stop_smr %>% filter(learner == "CWB", binning == "No binning"),
     aes(xmin = sec25, xmax = sec75, ymin = -Inf, ymax = Inf),
-    alpha = 0.1, size = 0, show.legend = FALSE, fill = mycolors[1]) +
+    alpha = 0.1, size = 0, show.legend = FALSE, fill = MYCOLORS[1]) +
   geom_segment(aes(y = auc_min, x = sec, yend = auc, xend = sec, color = learner), size = 0.2, alpha = 0.8) +
   geom_segment(aes(y = auc, x = sec_min, yend = auc, xend = sec_max, color = learner), size = 0.2, alpha = 0.8) +
   geom_segment(aes(y = auc25, x = sec, yend = auc75, xend = sec, color = learner), size = 1., alpha = 0.8) +
   geom_segment(aes(y = auc, x = sec25, yend = auc, xend = sec75, color = learner), size = 1., alpha = 0.8) +
   geom_point(aes(x = sec, y = auc, shape = binning), color = "white", size = 3) +
   geom_point(aes(x = sec, y = auc, color = learner, shape = binning), size = 2) +
-  scale_fill_manual(values = mycolors) +
-  scale_color_manual(values = mycolors) +
+  scale_fill_manual(values = MYCOLORS) +
+  scale_color_manual(values = MYCOLORS) +
   labs(shape = "") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(4L)) +
   xlab("Training time (seconds)") +
   ylab("Test AUC") +
   labs(color = "Learner") +
   facet_wrap(. ~ task, scales = "free")
 
-#ggsave(gg_bb, filename = fig_dir("fig-eq2-2.pdf"), width = dinA4width * 1.15, height = dinA4width * 0.5, units = "mm")
+if (SAVEGG) {
+  ggsave(gg_bb,
+    filename = FIG_DIR("fig-eq2-2.pdf"),
+    width = DINA4WIDTH,
+    height = DINA4WIDTH * 0.5,
+    units = "mm")
+}
 
 
 ## Relative runtime improvement and AUC difference:
 ## --------------------------------------------------------
+
+# This code creates the tables.
 
 ntsks = c("spam" = "Spam", "168908" = "Christine", "7592" = "Adult",
   "168335" = "MiniBooNE", "189866" = "Albert", "9977" = "Namao")
@@ -329,117 +294,4 @@ mod = gam(auc_best ~ task + binning + learner + binning*learner, data = df_smry,
 
 knitr::kable(summary(mod)$p.table)
 knitr::kable(summary(mod)$pTerms.table)
-
-
-
-## EQ1:
-## =============================================
-
-cwb_stops = df_stop %>% filter(learner == "cwb")
-substrRight = function(x, n = 1) substr(x, nchar(x) - n + 1, nchar(x))
-
-ll_tt   = list()
-idx_run = seq_len(nrow(cwb_stops))
-
-dffile = here::here("real-world-bm/eq1-2/meta/df_mboost.Rda")
-
-if (FALSE) {
-if (file.exists(dffile)) {
-  load(dffile)
-  for (i in seq_len(nrow(df_mboost))) {
-    ll_tt[[i]] = df_mboost[i,]
-  }
-  idx_run = which(is.na(df_mboost$train_time))
-}
-
-errs = c()
-for (i in idx_run) {
-  message("[", Sys.time(), "] ", i, "/", nrow(cwb_stops))
-  l = lrn("classif.gamboost", mstop = cwb_stops$stop[i])
-  fold = as.integer(substrRight(cwb_stops$fold[i]))
-  tset = RESAMPLE_SETS[[cwb_stops$task[i]]]$train_set(fold)
-
-  ts = TASKS[[cwb_stops$task[i]]]$clone(deep = TRUE)$filter(tset)
-  if (as.character(cwb_stops$task[i]) == "9977") {
-    feats_remove = paste0("V", c(17:18, 41:42, 73:74, 81:86))
-    ts = ts$select(setdiff(ts$feature_names, feats_remove))
-  }
-
-
-  ## DETECT FEATURES WHO CRASH THE TRAINING
-  #fnames = ts$feature_names
-  #for (j in seq_along(fnames)) {
-  #  tss = ts$clone(deep = TRUE)$select(fnames[j])
-
-  #  robustify = po("removeconstants", id = "removeconstants_before") %>>%
-  #    po("imputemedian", id = "imputemedian_num", affect_columns = selector_type(c("integer", "numeric"))) %>>%
-  #    po("imputemode", id = "imputemode_fct", affect_columns = selector_type(c("character", "factor", "ordered"))) %>>%
-  #    po("collapsefactors", target_level_count = 10) %>>%
-  #    po("removeconstants", id = "removeconstants_after")
-  #  tss = robustify$train(tss)
-  #
-  #  l = lrn("classif.gamboost", mstop = 1)
-  #  e = try(l$train(tss[[1]]), silent = TRUE)
-  #  if (inherits(e, "try-error")) message("ERRROR: ", fnames[j])
-  #}
-
-  robustify = po("removeconstants", id = "removeconstants_before") %>>%
-    po("imputemedian", id = "imputemedian_num", affect_columns = selector_type(c("integer", "numeric"))) %>>%
-    po("imputemode", id = "imputemode_fct", affect_columns = selector_type(c("character", "factor", "ordered"))) %>>%
-    po("collapsefactors", target_level_count = 10) %>>%
-    po("removeconstants", id = "removeconstants_after")
-  ts = robustify$train(ts)
-
-  e = NULL
-  e = try({ l$train(ts[[1]]); TRUE }, silent = TRUE)
-  if (inherits(e, "try-error")) {
-    ll_tt[[i]] = data.frame(learner = "mboost", train_time = NA,
-      task = cwb_stops$task[i], fold = fold, mstop = cwb_stops$stop[i])
-    errs = c(errs, paste0("ERROR: ", attr(e, "condition")$message))
-    msg  = last(errs)
-  } else {
-    ll_tt[[i]] = data.frame(learner = "mboost", train_time = l$state$train_time,
-      task = cwb_stops$task[i], fold = fold, mstop = cwb_stops$stop[i])
-    msg = paste0("FINISH training model in ", l$state$train_time, " seconds")
-  }
-  message("[", Sys.time(), "] ", i, "/", nrow(cwb_stops), ": ", msg)
-}
-df_mboost = do.call(rbind, ll_tt)
-save(df_mboost, file = "df_mboost.Rda")
-}
-
-load(dffile)
-
-df_mb = df_mboost %>%
-  rbind(df_stop %>% select(learner, train_time = seconds, task, fold, mstop = stop)) %>%
-  mutate(fold = substrRight(fold), time = train_time, train_time = NULL, task = taskIDtoName(task, TASKS)) %>%
-  group_by(task) %>%
-  mutate(speedup = time[learner == "mboost"] / time,
-    binning = ifelse(grepl("_b", learner), "Binning", "No binning"),
-    learner = ifelse(grepl("hcwb", learner), "HCWB", ifelse(grepl("acwb", learner), "ACWB", "CWB")))
-
-df_mb$learner = factor(df_mb$learner, levels = c("CWB", "ACWB", "HCWB"))
-df_mb$task    = factor(df_mb$task, levels = unique(df_mb$task)[c(1, 5, 6, 2, 3, 4)])
-df_mb$binning = factor(df_mb$binning, levels = c("No binning", "Binning"))
-
-gg_mboost = ggplot(df_mb %>% filter(learner != "mboost", ! grepl("Christine", task)), aes(x = learner, y = speedup, color = learner, fill = learner, linetype = binning)) +
-  geom_hline(yintercept = 1, color = "dark red", linetype = "dashed", alpha = 0.7) +
-  geom_boxplot(alpha = 0.4, size = 0.2) +
-  scale_fill_manual(values = mycolors) +
-  scale_color_manual(values = mycolors) +
-  labs(color = "Learner", fill = "Learner", linetype = "") +
-  xlab("") +
-  ylab("Speedup") +
-  theme(axis.text.x = element_blank(), legend.position = "bottom",
-    legend.margin = margin(0, 0, 0, 0), legend.box.margin = margin(-10, -10, 5, -10),
-    strip.text = element_text(color = "black", face = "bold", size = 4)) +
-  facet_wrap(. ~ task, scales = "free", ncol = 5)
-
-#ggsave(gg_mboost, filename = fig_dir("fig-eq1.pdf"), width = dinA4width * 1, height = dinA4width * 0.25, units = "mm")
-
-df_mb %>%
-  group_by(task, learner) %>%
-  summarize(speedup = mean(speedup, na.rm = TRUE), time = mean(time, na.rm = TRUE)) %>%
-  as.data.frame()
-
 

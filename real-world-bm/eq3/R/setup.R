@@ -1,10 +1,8 @@
 ## Used packages
 if (FALSE) {
   install.packages(c("processx", "callr", "mlr3", "mlr3tuning", "mlr3learners", "mlr3pipelines",
-    "paradox", "xgboost", "ranger", "mboost", "mlr3oml", "reticulate", "mlrMBO",
-    "DiceKriging", "mlr3hyperband"))
+    "reticulate", "paradox", "xgboost", "ranger", "mboost", "mlr3oml", "reticulate", "mlr3hyperband"))
   remotes::install_github("mlr-org/mlr3extralearners")
-  remotes::install_github("mb706/mlrintermbo@fixed-initial-design")
   remotes::install_github("schalkdaniel/compboost", ref = "c68e8fb32aea862750991260d243cdca1d3ebd0e")
 }
 

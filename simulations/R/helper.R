@@ -1,5 +1,4 @@
-getAllFeatEffectData = function (bm_extract, ndata = 1000L, coef_names = character(0L))
-{
+getAllFeatEffectData = function (bm_extract, ndata = 1000L, coef_names = character(0L)) {
   checkmate::assertCharacter(x = coef_names, min.len = 1L)
   if (any(! coef_names %in% names(bm_extract))) stop("coef_names needs to be in bm_extract")
 
@@ -44,8 +43,7 @@ getAllFeatEffectData = function (bm_extract, ndata = 1000L, coef_names = charact
   return (out)
 }
 
-getFeatureIME = function (x, truth, pred, loss = function (x,y) (x-y)^2)
-{
+getFeatureIME = function (x, truth, pred, loss = function (x,y) (x-y)^2) {
   e = try({
     f_b = approxfun(x = x, y = loss(truth,pred))
     int = integrate(f = f_b, upper = max(x), lower = min(x))$value
@@ -54,8 +52,7 @@ getFeatureIME = function (x, truth, pred, loss = function (x,y) (x-y)^2)
   return ()
 }
 
-getFeatEffectDataBinning = function (bm_extract, bl, truth = TRUE)
-{
+getFeatEffectDataBinning = function (bm_extract, bl, truth = TRUE) {
   set.seed(bm_extract$data_seed)
   dat = simData(bm_extract$config$n, bm_extract$config$p, bm_extract$config$pnoise)
 
@@ -88,11 +85,10 @@ getFeatEffectDataBinning = function (bm_extract, bl, truth = TRUE)
       method = rep(c("binning", "nobinning"), each = length(x))
     )
   }
-  return (out)
+  return(out)
 }
 
-getOobRiskData = function (bm_extract)
-{
+getOobRiskData = function (bm_extract) {
   set.seed(bm_extract$data_seed)
 
   risk_binning = bm_extract$log_binning$oob
@@ -103,21 +99,10 @@ getOobRiskData = function (bm_extract)
     risk = c(risk_binning, risk_nobinning),
     method = rep(c("binning", "nobinning"), times = c(length(risk_binning), length(risk_nobinning)))
   )
-
-  return (out)
+  return(out)
 }
 
-
-
-#x = runif(1000, 10, 1000)
-#y = sin(x)
-#yn = y + 1
-
-#f = approxfun(x = x, y = (y - yn)^2)
-#integrate(f = f, upper = max(x), lower = min(x))
-
-getBLMSE = function (bm_extract)
-{
+getBLMSE = function (bm_extract) {
   set.seed(bm_extract$data_seed)
   dat = simData(bm_extract$config$n, bm_extract$config$p, bm_extract$config$pnoise)
 
@@ -169,14 +154,12 @@ getBLMSE = function (bm_extract)
 
     k = k+1
   }
-
-  return (list(mean_nob = mean(diff_nob), mean_b = mean(diff_b)))
+  return(list(mean_nob = mean(diff_nob), mean_b = mean(diff_b)))
 }
 
 
 
-plotBlearnerTraces = function (bl, value = 1, n_legend = 5L, iter_limit = NULL, show_labels = TRUE, show_last_point = FALSE)
-{
+plotBlearnerTraces = function (bl, value = 1, n_legend = 5L, iter_limit = NULL, show_labels = TRUE, show_last_point = FALSE) {
   nbl = length(bl)
   if (is.null(iter_limit)) iter_limit = nbl
   bl = as.factor(bl[seq_len(iter_limit)])
@@ -238,9 +221,7 @@ plotBlearnerTraces = function (bl, value = 1, n_legend = 5L, iter_limit = NULL, 
 }
 
 
-transformBinaryToParam = function (binary_params)
-{
-  #pure = binary_params[[2]]
+transformBinaryToParam = function (binary_params) {
   pure = binary_params
   pnames = names(pure)
   feats = unique(vapply(pnames, FUN.VALUE = character(1L), FUN = function (pn) strsplit(pn, split = "_")[[1]][1]))
@@ -254,11 +235,10 @@ transformBinaryToParam = function (binary_params)
     return (data.frame(cls = out_names, means = out))
   })
   names(out) = feats
-  return (out)
+  return(out)
 }
 
-transformRidgeToParam = function (est_params, data)
-{
+transformRidgeToParam = function (est_params, data) {
   nms = names(est_params)
   out = lapply(nms, function (pm) {
     if (grepl(pattern = "noise", x = pm)) {
@@ -270,11 +250,10 @@ transformRidgeToParam = function (est_params, data)
     }
   })
   names(out) = nms
-  return (out)
+  return(out)
 }
 
-getNoiseMSE = function (real_params, est_params, include_noise = TRUE, just_noise = FALSE)
-{
+getNoiseMSE = function (real_params, est_params, include_noise = TRUE, just_noise = FALSE) {
   names(real_params) = paste0("xx", seq_along(real_params))
   out = lapply(names(est_params), function (pn) {
     params = est_params[[pn]]
@@ -310,18 +289,15 @@ getNoiseMSE = function (real_params, est_params, include_noise = TRUE, just_nois
     }
     return (mout)
   })
-  #return (out)
   names(out) = names(est_params)
-  #browser()
   mout = mean(unlist(out), na.rm = TRUE)
   n_not_sel = mean(unlist(lapply(out, function(m) attr(m, "n.not.sel"))), na.rm = TRUE)
   n_wrong_not_sel = mean(unlist(lapply(out, function(m) attr(m, "n.wrong.not.sel"))), na.rm = TRUE)
-  return (list(mean = mout, n_not_sel = n_not_sel, n_wrong_not_sel = n_wrong_not_sel))
+  return(list(mean = mout, n_not_sel = n_not_sel, n_wrong_not_sel = n_wrong_not_sel))
 }
 
 
-getCategoricalMSE = function (real_params, est_params, include_noise = TRUE)
-{
+getCategoricalMSE = function (real_params, est_params, include_noise = TRUE) {
   names(real_params) = paste0("xx", seq_along(real_params))
   out = lapply(names(est_params), function (pn) {
     params = est_params[[pn]]
