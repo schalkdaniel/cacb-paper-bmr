@@ -9,7 +9,7 @@ for (i in seq_along(TASKS)) {
   resampling = RESAMPLE_SETS[[i]]
 
   robustify = po("removeconstants", id = "removeconstants_before") %>>%
-    po("mputemedian", id = "imputemedian_num", affect_columns = selector_type(c("integer", "numeric"))) %>>%
+    po("imputemedian", id = "imputemedian_num", affect_columns = selector_type(c("integer", "numeric"))) %>>%
     po("imputemode", id = "imputemode_fct", affect_columns = selector_type(c("character", "factor", "ordered"))) %>>%
     po("collapsefactors", target_level_count = 10) %>>%
     po("removeconstants", id = "removeconstants_after")
