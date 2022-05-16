@@ -8,6 +8,8 @@ The structure is as followed:
 
 Each folder contains a script `analyse.R` which can be used to reproduce the results and figures from the paper. The `benchmark.R` files can be used to rerun all benchmarks. Be careful when recomputing everything because of very long runtimes of multiple weeks/months depending on the machine.
 
+Additionally, the folder `appendix` contains the simulation study for skewed distribution and outliers as well as the big data examples. The links to download and pre-process the raw data for the big data examples are given in the folders.
+
 ### Run the docker
 
 Running the docker provides an RStudio API in your browser with all packages pre-installed and data to inspect the results. Therefore do:
