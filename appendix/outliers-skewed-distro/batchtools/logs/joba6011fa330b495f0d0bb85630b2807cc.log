@@ -1,0 +1,56 @@
+### [bt]: This is batchtools v0.9.15
+### [bt]: Starting calculation of 1 jobs
+### [bt]: Setting working directory to '/home/daniel/temp/cacb-revision'
+### [bt]: Memory measurement disabled
+### [bt]: Starting job [batchtools job.id=2986]
+### [bt]: Generating problem instance for problem 'simdat' ...
+### [bt]: Applying algorithm 'cwb' on problem 'simdat' for job 2986 (seed = 34401) ...
+  1/200   risk = 0.28  time = 0   
+  5/200   risk = 0.25  time = 241   
+ 10/200   risk = 0.21  time = 474   
+ 15/200   risk = 0.19  time = 647   
+ 20/200   risk = 0.17  time = 811   
+ 25/200   risk = 0.16  time = 970   
+ 30/200   risk = 0.15  time = 1160   
+ 35/200   risk = 0.14  time = 1333   
+ 40/200   risk = 0.13  time = 1501   
+ 45/200   risk = 0.13  time = 1674   
+ 50/200   risk = 0.12  time = 1848   
+ 55/200   risk = 0.12  time = 2024   
+ 60/200   risk = 0.12  time = 2200   
+ 65/200   risk = 0.12  time = 2383   
+ 70/200   risk = 0.11  time = 2584   
+ 75/200   risk = 0.11  time = 2772   
+ 80/200   risk = 0.11  time = 2977   
+ 85/200   risk = 0.11  time = 3171   
+ 90/200   risk = 0.11  time = 3376   
+ 95/200   risk = 0.11  time = 3574   
+100/200   risk = 0.11  time = 3786   
+105/200   risk = 0.11  time = 3981   
+110/200   risk = 0.1  time = 4174   
+115/200   risk = 0.1  time = 4382   
+120/200   risk = 0.1  time = 4586   
+125/200   risk = 0.1  time = 4783   
+130/200   risk = 0.1  time = 5010   
+135/200   risk = 0.1  time = 5228   
+140/200   risk = 0.1  time = 5441   
+145/200   risk = 0.1  time = 5665   
+150/200   risk = 0.1  time = 5860   
+155/200   risk = 0.1  time = 6056   
+160/200   risk = 0.1  time = 6251   
+165/200   risk = 0.1  time = 6456   
+170/200   risk = 0.099  time = 6665   
+175/200   risk = 0.099  time = 6890   
+180/200   risk = 0.099  time = 7100   
+185/200   risk = 0.099  time = 7295   
+190/200   risk = 0.098  time = 7495   
+195/200   risk = 0.098  time = 7711   
+200/200   risk = 0.098  time = 7923   
+
+
+Train 200 iterations in 0 Seconds.
+Final risk based on the train set: 0.098
+
+
+### [bt]: Job terminated successfully [batchtools job.id=2986]
+### [bt]: Calculation finished!

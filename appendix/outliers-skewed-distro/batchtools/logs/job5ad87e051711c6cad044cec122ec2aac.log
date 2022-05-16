@@ -1,0 +1,56 @@
+### [bt]: This is batchtools v0.9.15
+### [bt]: Starting calculation of 1 jobs
+### [bt]: Setting working directory to '/home/daniel/temp/cacb-revision'
+### [bt]: Memory measurement disabled
+### [bt]: Starting job [batchtools job.id=10104]
+### [bt]: Generating problem instance for problem 'simdat' ...
+### [bt]: Applying algorithm 'cwb' on problem 'simdat' for job 10104 (seed = 41519) ...
+  1/200   risk = 0.27  time = 0   
+  5/200   risk = 0.19  time = 641   
+ 10/200   risk = 0.12  time = 1341   
+ 15/200   risk = 0.084  time = 2026   
+ 20/200   risk = 0.06  time = 2744   
+ 25/200   risk = 0.045  time = 3425   
+ 30/200   risk = 0.036  time = 4092   
+ 35/200   risk = 0.03  time = 4724   
+ 40/200   risk = 0.026  time = 5394   
+ 45/200   risk = 0.024  time = 6050   
+ 50/200   risk = 0.023  time = 6711   
+ 55/200   risk = 0.022  time = 7369   
+ 60/200   risk = 0.021  time = 8023   
+ 65/200   risk = 0.021  time = 8733   
+ 70/200   risk = 0.02  time = 9400   
+ 75/200   risk = 0.02  time = 10053   
+ 80/200   risk = 0.02  time = 10726   
+ 85/200   risk = 0.02  time = 11387   
+ 90/200   risk = 0.02  time = 12044   
+ 95/200   risk = 0.02  time = 12703   
+100/200   risk = 0.02  time = 13363   
+105/200   risk = 0.02  time = 14022   
+110/200   risk = 0.02  time = 14690   
+115/200   risk = 0.02  time = 15379   
+120/200   risk = 0.02  time = 16098   
+125/200   risk = 0.02  time = 16875   
+130/200   risk = 0.02  time = 17670   
+135/200   risk = 0.02  time = 18447   
+140/200   risk = 0.02  time = 19208   
+145/200   risk = 0.02  time = 19982   
+150/200   risk = 0.02  time = 20765   
+155/200   risk = 0.02  time = 21514   
+160/200   risk = 0.02  time = 22262   
+165/200   risk = 0.02  time = 22990   
+170/200   risk = 0.02  time = 23733   
+175/200   risk = 0.02  time = 24468   
+180/200   risk = 0.02  time = 25208   
+185/200   risk = 0.02  time = 25925   
+190/200   risk = 0.02  time = 26623   
+195/200   risk = 0.02  time = 27337   
+200/200   risk = 0.02  time = 28092   
+
+
+Train 200 iterations in 0 Seconds.
+Final risk based on the train set: 0.02
+
+
+### [bt]: Job terminated successfully [batchtools job.id=10104]
+### [bt]: Calculation finished!
